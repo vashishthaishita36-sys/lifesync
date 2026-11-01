@@ -1,3 +1,4 @@
+import os
 from datetime import date
 from flask import Flask, render_template, request, redirect, url_for, flash
 import database
@@ -5,7 +6,7 @@ import dsa_utils
 import ml
 
 app = Flask(__name__)
-app.secret_key = "change-this-later"
+app.secret_key = os.environ.get("LIFESYNC_SECRET", "dev-only-change-me")
 
 database.init_db()
 

@@ -12,8 +12,9 @@ from sklearn.model_selection import train_test_split
 
 import database
 
-MODEL_PATH = "model.pkl"
-METRICS_PATH = "metrics.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
+METRICS_PATH = os.path.join(BASE_DIR, "metrics.json")
 
 FEATURES = ["bedtime_num", "sleep_hours", "study_hours",
             "exercise_minutes", "screen_hours"]
