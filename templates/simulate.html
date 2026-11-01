@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">What-if simulator</h2>
+<p class="muted">Starts from your latest day. Move the sliders, then press Simulate to see how predicted productivity changes.</p>
+
+<form method="POST" class="panel">
+    <div class="sliders">
+        {% for name, label, lo, hi, step in sliders %}
+        <label class="field">
+            <span>{{ label }}: <strong id="out_{{ name }}"></strong></span>
+            <input type="range" name="{{ name }}" min="{{ lo }}" max="{{ hi }}" step="{{ step }}" value="{{ values[name] }}">
+        </label>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn full">Simulate</button>
+</form>
+
+{% if result %}
+<div class="stats">
+    <div class="stat"><div class="icon">&#128205;</div>
+        <div><span>Current prediction</span><strong>{{ result.current }} / 10</strong></div></div>
+    <div class="stat"><div class="icon">&#128302;</div>
+        <div><span>Simulated prediction</span><strong>{{ result.simulated }} / 10</strong></div></div>
+    <div class="stat"><div class="icon">&#9878;</div>
+        <div><span>Change</span>
+        <strong class="{{ 'up' if result.change > 0 else 'down' if result.change < 0 else '' }}">
+            {{ '+' if result.change > 0 else '' }}{{ result.change }}</strong></div></div>
+</div>
+{% endif %}
+
+<script>
+function fmtBed(v) {
+    var t = (18 + parseFloat(v)) % 24;
+    var h = Math.floor(t);
+    var m = Math.round((t - h) * 60);
+    if (m === 60) { h = (h + 1) % 24; m = 0; }
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+document.querySelectorAll('input[type=range]').forEach(function (el) {
+    var out = document.getElementById('out_' + el.name);
+    function show() {
+        out.textContent = (el.name === 'bedtime_num') ? fmtBed(el.value) : el.value;
+    }
+    el.addEventListener('input', show);
+    show();
+});
+</script>
+{% endblock %}

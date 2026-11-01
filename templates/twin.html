@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+    <div>
+        <h2>Your digital twin</h2>
+        <p>Based on your latest entry: {{ latest.entry_date }}</p>
+        <p>Predicted productivity if you repeat your latest day's habits</p>
+        {% if prediction is not none %}
+        <div class="bar"><div style="width: {{ (prediction * 10)|round(0) }}%"></div></div>
+        {% endif %}
+    </div>
+    <div class="big">
+        {% if prediction is not none %}{{ prediction }}<small> / 10</small>{% else %}-{% endif %}
+    </div>
+</section>
+
+<div class="stats">
+    <div class="stat"><div class="icon">&#128564;</div>
+        <div><span>7-day avg sleep</span><strong>{{ sleep_avg|round(1) }} h</strong></div></div>
+    <div class="stat"><div class="icon">&#128200;</div>
+        <div><span>7-day avg productivity</span><strong>{{ prod_avg|round(1) }} / 10</strong></div></div>
+    <div class="stat"><div class="icon">&#128293;</div>
+        <div><span>Streak (score 7+)</span><strong>{{ streak }} days</strong></div></div>
+</div>
+
+<h3 class="section-title">Productivity trend (last 30 days)</h3>
+<div class="panel"><canvas id="trend" height="110"></canvas></div>
+
+<div class="grid-2">
+    <div>
+        <h3 class="section-title">Top recommendations</h3>
+        <div class="panel">
+        {% if recs %}
+            {% for gain, text in recs %}
+            <div class="rec"><span>{{ text }}</span><span class="pill">+{{ gain }}</span></div>
+            {% endfor %}
+        {% elif prediction is not none %}
+            <p class="muted">Your latest day is already close to the best the model can find.</p>
+        {% else %}
+            <p class="muted">Train the model first: run <code>python ml.py</code>.</p>
+        {% endif %}
+        </div>
+    </div>
+
+    <div>
+        <h3 class="section-title">What affects your productivity</h3>
+        <div class="panel">
+        {% if insights %}
+            {% for name, value in insights.items() %}
+            <div class="insight">
+                <div class="insight-head"><span>{{ name }}</span><strong>{{ value }}</strong></div>
+                <div class="track"><div class="fill {{ 'pos' if value > 0 else 'neg' }}" style="width: {{ ((value|abs) * 100)|round(0) }}%"></div></div>
+            </div>
+            {% endfor %}
+            <p class="muted">Green rises with productivity, red moves against it. Longer bar means a stronger link.</p>
+        {% else %}
+            <p class="muted">Not enough data yet.</p>
+        {% endif %}
+        </div>
+    </div>
+</div>
+
+<h3 class="section-title">Model</h3>
+<div class="panel">
+    {% if metrics %}
+    <p><strong>{{ metrics.best }}</strong> &middot; trained on {{ metrics.rows }} entries &middot;
+       MAE {{ metrics.results[metrics.best].mae }} &middot; R&sup2; {{ metrics.results[metrics.best].r2 }}</p>
+    {% else %}
+    <p class="muted">No trained model yet.</p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('retrain') }}">
+        <button type="submit" class="btn">Retrain model with latest entries</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+Chart.defaults.color = isDark ? '#9aa3bd' : '#6b7280';
+Chart.defaults.borderColor = isDark ? '#2b3150' : '#e5e7eb';
+
+new Chart(document.getElementById('trend'), {
+    type: 'line',
+    data: {
+        labels: {{ labels|tojson }},
+        datasets: [
+            { label: 'Productivity', data: {{ scores|tojson }}, borderColor: isDark ? '#8b8bf5' : '#5b5bd6', backgroundColor: 'rgba(91, 91, 214, 0.15)', fill: true, tension: 0.35, pointRadius: 2 },
+            { label: '7-day average', data: {{ averages|tojson }}, borderColor: '#f97316', borderDash: [6, 4], pointRadius: 0, tension: 0.35 }
+        ]
+    },
+    options: { scales: { y: { min: 0, max: 10 } }, plugins: { legend: { position: 'top' } } }
+});
+
+document.addEventListener('themechange', function () { location.reload(); });
+</script>
+{% endblock %}

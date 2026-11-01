@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LIFESYNC</title>
+    <script>
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem('lifesync-theme'); } catch (e) {}
+            var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <span class="brand">&#9670; LIFESYNC</span>
+            <a href="{{ url_for('twin') }}" class="{{ 'active' if request.endpoint == 'twin' else '' }}">My Twin</a>
+            <a href="{{ url_for('add_entry') }}" class="{{ 'active' if request.endpoint == 'add_entry' else '' }}">Add entry</a>
+            <a href="{{ url_for('simulate') }}" class="{{ 'active' if request.endpoint == 'simulate' else '' }}">What-if</a>
+            <a href="{{ url_for('entries') }}" class="{{ 'active' if request.endpoint == 'entries' else '' }}">All entries</a>
+            <button id="themeToggle" class="theme-btn" type="button">&#9680; Theme</button>
+        </div>
+    </header>
+    <main>
+        {% with messages = get_flashed_messages() %}
+            {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+        document.getElementById('themeToggle').addEventListener('click', function () {
+            var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('lifesync-theme', next); } catch (e) {}
+            document.dispatchEvent(new Event('themechange'));
+        });
+    </script>
+</body>
+</html>

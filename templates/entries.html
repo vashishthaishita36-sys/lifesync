@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">All entries</h2>
+<p class="muted">Your full history. This is the data the model learns from.</p>
+{% if rows %}
+<div class="table-wrap">
+<table>
+    <tr>
+        <th>Date</th><th>Bedtime</th><th>Sleep</th><th>Study</th><th>Tasks</th>
+        <th>Exercise</th><th>Screen</th><th>Spent</th><th>Productivity</th>
+    </tr>
+    {% for r in rows %}
+    <tr>
+        <td>{{ r.entry_date }}</td><td>{{ r.bedtime }}</td>
+        <td>{{ r.sleep_hours }}</td><td>{{ r.study_hours }}</td>
+        <td>{{ r.tasks_completed }}/{{ r.tasks_planned }}</td>
+        <td>{{ r.exercise_minutes }}</td><td>{{ r.screen_hours }}</td>
+        <td>{{ r.spending }}</td>
+        <td><span class="badge {% if r.productivity_score >= 7 %}good{% elif r.productivity_score >= 5 %}mid{% else %}low{% endif %}">{{ r.productivity_score }}</span></td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+{% else %}
+<p>No entries yet. <a href="{{ url_for('add_entry') }}">Add your first one.</a></p>
+{% endif %}
+{% endblock %}
